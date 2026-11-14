@@ -130,9 +130,21 @@ Web dashboard, auth portal, tax/RFC flows, cards, refunds, BSP routing, Marketin
 - A replayed webhook produces no duplicate alert.
 - The whole demo runs from the README by someone who did not write the code.
 
-## 13. Open questions
+## 13. Milestones
 
-1. Is the CoDi account on the Pey key active today?
-2. Which phone is the "merchant" in the demo, and which bank apps will the payers use?
-3. Is the final judging on Dec 14, with today as a first milestone? If so, the "Later" list becomes the roadmap.
-4. Who sets up the Meta developer app and test number?
+| Date | Deliverable |
+|---|---|
+| Nov 15 (kickoff MVP submission) | All P0 items: preset QR, payment webhook, WhatsApp alert with running total, README. |
+| Nov 16 to Dec 14 (final submission) | The "Later" list in order: Utility template and send router, self-serve CLABE with per-merchant accounts, `Cobrar` QR from chat, `Hoy`, open-amount QR, own business number. |
+
+## 14. Resolved questions
+
+1. The CoDi account on the Pey API key is active.
+2. Merchant phone: the team lead's iPhone. Payer: Nu app.
+3. Kickoff MVP is due Nov 15; the hackathon ends Dec 14 with the larger project.
+4. The team lead sets up the Meta developer app and test number.
+
+## 15. Still to verify
+
+- Nu can scan and pay a CoDi QR for $0.01, and the same QR can be paid twice (risks 1 and 3).
+- If merchant and payer are the same phone, the QR must be shown on a second screen; scanning needs the camera.
