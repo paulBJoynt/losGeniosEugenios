@@ -148,3 +148,27 @@ Web dashboard, auth portal, tax/RFC flows, cards, refunds, BSP routing, Marketin
 
 - Nu can scan and pay a CoDi QR for $0.01, and the same QR can be paid twice (risks 1 and 3).
 - If merchant and payer are the same phone, the QR must be shown on a second screen; scanning needs the camera.
+
+## 16. Plan B: Twilio WhatsApp sandbox (fallback)
+
+Update Nov 15: Meta delivery works after recreating the app (MangoPago) under the team lead's own Facebook profile, so plan A (Meta Cloud API) is active again. The app supports both through `WHATSAPP_PROVIDER`; Twilio stays as the fallback. Twilio's trial flow never recognized the Mexican number, so it is untested end to end.
+
+| Topic | Plan A (Meta) | Plan B (Twilio sandbox) |
+|---|---|---|
+| Setup | Business portfolio, app, test number | Twilio account; phone sends `join <code>` to +1 415 523 8886 |
+| Sender shown to merchant | Meta test number | Twilio's shared sandbox number |
+| Inbound webhook | JSON, GET verification challenge | Form-encoded POST, `X-Twilio-Signature`, reply with TwiML |
+| Sending | Graph API | Twilio Messages API (`whatsapp:+...` addresses) |
+| Free-form window | 24h after last inbound | Same |
+| Env vars | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN` | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`, `PUBLIC_BASE_URL` |
+
+What stays the same: every P0 requirement, the Pey integration, storage, message copy and the demo flow. Requirement P0-5 becomes "validate the Twilio signature, record `lastInboundAt`, reply to `Hola`".
+
+Added risks:
+
+- Sandbox participants expire after 3 days. Re-send `join <code>` on demo day.
+- Sandbox throttle: 1 message per 3 seconds, about 50 a day on a trial account. Enough for the demo.
+- Twilio adds a per-message fee on top of Meta's, so the cost story in the pitch still describes Meta direct.
+- Mexican numbers arrive as `+521...`; the app stores `+52...` and replies to the exact address WhatsApp used.
+
+Migration back to Meta: replace `lib/whatsapp.ts` and the inbound route's parsing. Nothing else depends on Twilio.
