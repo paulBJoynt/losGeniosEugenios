@@ -7,7 +7,7 @@ Product scope and decisions: [docs/PRD.md](docs/PRD.md).
 
 ## How it works
 
-1. `npm run create-qr` creates a non-expiring CoDi QR in Pey and links it to the merchant's phone.
+1. The `/setup` page creates a non-expiring CoDi QR in Pey and links it to the merchant's phone.
 2. The merchant sends `Hola` to the WhatsApp number. This opens 24 hours of free-form alerts.
 3. A customer pays the QR. Pey calls `POST /api/pey/webhook`.
 4. The app verifies the signature, stores the payment once, and sends the alert on WhatsApp.
@@ -16,7 +16,8 @@ Product scope and decisions: [docs/PRD.md](docs/PRD.md).
 |---|---|
 | `app/api/pey/webhook` | Pey payment events (Standard Webhooks signature) |
 | `app/api/whatsapp/webhook` | Inbound WhatsApp messages (Meta, or Twilio as plan B) |
-| `app/api/mock/payment` | Simulated payment, only when `MOCK_SECRET` is set |
+| `app/setup` | Page to create a merchant's QR and simulate a payment (needs `ADMIN_SECRET`) |
+| `app/api/admin/create-qr`, `app/api/mock/payment` | Back the setup page; disabled without `ADMIN_SECRET` |
 | `lib/whatsapp.ts` | The only file that talks to WhatsApp; `WHATSAPP_PROVIDER` picks Meta or Twilio |
 | `scripts/create-qr.ts` | Creates the QR and the merchant record |
 | `scripts/smoke-test.ts` | Runs the whole loop locally with no external services |
@@ -56,18 +57,15 @@ In https://portal.mipey.mx/developers click the gear on your API key, set the we
 
 ### 5. Create the QR
 
-Copy `.env.example` to `.env` locally with `PEY_API_KEY` and the same `DATABASE_URL` as the
-deployment, then:
+Open `https://<your-app>.vercel.app/setup`, enter the `ADMIN_SECRET` you set in Vercel, the stall
+name, the merchant's WhatsApp number and the amount, and press "Crear QR". The page shows the QR;
+screenshot or print it.
 
-```bash
-npm install
-```
+The same thing from a terminal, with `PEY_API_KEY` and `DATABASE_URL` in a local `.env`:
 
 ```bash
 npm run create-qr -- --phone +52XXXXXXXXXX --name "Tacos Lupita" --amount 0.01 --concept "Tacos"
 ```
-
-It saves `qr-<phone>.png`. Show that image on a screen or print it.
 
 ## Demo script
 
@@ -76,11 +74,8 @@ It saves `qr-<phone>.png`. Show that image on a screen or print it.
 3. The merchant's phone shows `✅ Recibiste $0.01 MXN — Tacos. Llevas $0.01 hoy (1 pago).`
 4. Pay again; the total goes up.
 
-Fallback if a live payment fails on stage (requires `MOCK_SECRET`):
-
-```bash
-curl -X POST https://<your-app>.vercel.app/api/mock/payment -H "x-mock-secret: $MOCK_SECRET" -H "content-type: application/json" -d '{"codiQrId":"<id printed by create-qr>","amount":0.01,"concept":"Tacos"}'
-```
+Fallback if a live payment fails on stage: the "Simular un pago" button on `/setup`, shown after
+creating the QR. It sends the same alert without a bank payment.
 
 ## Local checks
 

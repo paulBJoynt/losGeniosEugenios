@@ -1,6 +1,6 @@
 # Build plan: setup and work split
 
-Status: v1, 2026-11-14. Companion to [PRD.md](PRD.md). Target: all P0 items by the Nov 15 kickoff submission.
+Status: v2, 2026-11-15. Companion to [PRD.md](PRD.md). Target: all P0 items by the Nov 15 kickoff submission.
 
 ## 1. How the system fits together
 
@@ -24,7 +24,35 @@ Store them in Vercel project settings. Pull them to a laptop with `vercel env pu
 - **Webhooks need a public, fixed URL.** Pey allows one webhook URL per API key, and Meta also wants a fixed one. Point both at the Vercel production URL and test by merging and deploying, not from localhost.
 - **Meta's default access token expires in about 24 hours.** Generate a fresh one on demo day, or create a system-user token.
 
-## 2. Work split
+## 2. Current state (Nov 15)
+
+The first version of both sides is built and pushed on `claude/festive-cerf-droyo6`. What is left is setup and live testing, not code.
+
+| Area | Where it lives |
+|---|---|
+| Payments | `lib/pey.ts`, `lib/payments.ts`, `lib/store.ts`, `app/api/pey/webhook` |
+| WhatsApp | `lib/whatsapp.ts` (`sendWhatsApp(to, body)`), `app/api/whatsapp/webhook` |
+| Onboarding | `app/setup` page, `app/api/admin/create-qr`, `scripts/create-qr.ts` |
+| Stage fallback | `app/api/mock/payment`, used by the "Simular un pago" button on `/setup` |
+| Checks | `npm run smoke` (whole loop, no external services), `npm run typecheck` |
+
+Environment variables now also include `META_APP_SECRET` (verifies Meta webhooks) and `ADMIN_SECRET` (protects `/setup`). Full list: `.env.example`.
+
+Tested only locally so far. Still to prove against real services: the Postgres queries, a real Pey webhook, a real Meta send, and paying one QR twice.
+
+### Remaining work
+
+| Step | Owner |
+|---|---|
+| Import the repo in Vercel, add Neon, set env vars | Team lead |
+| Set the Pey webhook URL and save its secret | Team lead |
+| Set the Meta webhook URL and subscribe to `messages` | Team lead |
+| Create the QR on `/setup`, send `Hola`, pay twice from Nu | Team lead |
+| Fix whatever the live test breaks | Whoever is free |
+
+## 3. Original work split (superseded)
+
+
 
 The split is by side of the pipeline, not first half / second half: each step depends on the previous one, so a chronological split would leave one person waiting. The two sides meet at a single function call, so they can be built at the same time.
 
@@ -67,7 +95,7 @@ export async function sendWhatsAppText(to: string, body: string): Promise<void>
 
 If you need a change in the other person's file, ask them or open a small PR they review.
 
-## 3. Order of work
+## 4. Original order of work (superseded)
 
 1. Merge the PRD branch into `main` so both people start from the same `main`.
 2. Person 1 pushes the scaffold, schema and first Vercel deploy to `main` (about 30 minutes). Person 2 does the Meta setup at the same time, which needs no code.

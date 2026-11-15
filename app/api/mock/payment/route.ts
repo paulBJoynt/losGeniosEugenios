@@ -1,12 +1,12 @@
+import { checkAdmin } from "@/lib/admin";
 import { handlePayment } from "@/lib/payments";
 
 export const runtime = "nodejs";
 
-// Stage fallback: simulates a Pey payment. Disabled unless MOCK_SECRET is set.
+// Stage fallback: simulates a Pey payment. Disabled unless ADMIN_SECRET is set.
 export async function POST(req: Request) {
-  const secret = process.env.MOCK_SECRET;
-  if (!secret) return new Response("Not found", { status: 404 });
-  if (req.headers.get("x-mock-secret") !== secret) return new Response("Forbidden", { status: 403 });
+  const denied = checkAdmin(req);
+  if (denied) return denied;
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const codiQrId = String(body.codiQrId ?? "");

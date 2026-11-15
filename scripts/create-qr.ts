@@ -2,6 +2,7 @@
 // Usage: npm run create-qr -- --phone +5215512345678 --name "Tacos Lupita" [--amount 0.01] [--concept "Tacos"]
 import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
+import { createCodiQr } from "../lib/pey";
 import { normalizePhone } from "../lib/phone";
 import { getStore } from "../lib/store";
 
@@ -25,15 +26,7 @@ async function main() {
   const amount = Number(values.amount);
   if (!Number.isFinite(amount) || amount < 0) throw new Error("Invalid --amount");
 
-  const res = await fetch("https://api.pey.mx/codi/qr", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.PEY_API_KEY}`, "Content-Type": "application/json" },
-    // expiration 0 = the QR never expires, so it can be printed and reused.
-    body: JSON.stringify({ amount, concept, expiration: 0, generateImage: true }),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Pey responded ${res.status}: ${text}`);
-  const qr = JSON.parse(text) as { id: string; qrString: string; qrImage?: string | null };
+  const qr = await createCodiQr(amount, concept);
 
   await getStore().upsertMerchant({ phone, name: values.name, codiQrId: qr.id, concept });
 
